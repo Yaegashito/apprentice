@@ -2,7 +2,7 @@
 
 class Card
 {
-    public function initCards()
+    public function createInitCards()
     {
         $cards = [];
         $suits = ['スペード', 'ハート', 'ダイヤ', 'クラブ'];

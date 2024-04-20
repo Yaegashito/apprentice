@@ -2,11 +2,13 @@
 
 class Player
 {
-    public $name;
-    public $countCards = 26;
+    // public $name;
+    public $playerCards;
+    public $playerSpareCards = [];
+    // public $numberOfPlayers;
 
-    public function __construct($name)
-    {
-        $this->name = $name;
-    }
+    // public function __construct($name)
+    // {
+    //     $this->name = $name;
+    // }
 }
