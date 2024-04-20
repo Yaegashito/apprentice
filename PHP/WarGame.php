@@ -2,6 +2,7 @@
 
 require_once('Player.php');
 require_once('Card.php');
+require_once('TwoPlayerRule.php');
 
 class Game
 {
@@ -18,6 +19,37 @@ class Game
             ${"player" . $i} = new Player();
         }
 
+        if ($numOfPlayer === 2) {
+            // $twoPlayerRule = new TwoPlayerRule();
+            // $twoPlayerRule->applyRule($player1, $player2, $shuffledCards);
+            $this->applyTwoRule($player1, $player2, $shuffledCards);
+        }
+        // elseif ($numOfPlayer === 3) {
+
+        // } elseif ($numOfPlayer === 4) {
+
+        // }
+
+        echo '戦争を終了します。' . PHP_EOL;
+    }
+
+    private function initSet()
+    {
+        echo '戦争を開始します。' . PHP_EOL;
+        while (true) {
+            echo 'プレイヤーの人数を入力してください（2~5(今は2人のみ)）：';
+            $numOfPlayer = (int)trim(fgets(STDIN));
+            if ($numOfPlayer >= 2 && $numOfPlayer <= 5) {
+                break;
+            } else {
+                echo '人数は2~5人で入力してください。' . PHP_EOL;
+            }
+        }
+        return $numOfPlayer;
+    }
+
+    private function applyTwoRule(Player $player1, Player $player2, array $shuffledCards)
+    {
         // ↓ カードを各プレイヤーに分配。人数変更に対応できたほうがよさそうだがちょっと難しそう
         [$player1->playerCards, $player2->playerCards] = array_chunk($shuffledCards, count($shuffledCards) / 2);
         echo 'カードが配られました。' . PHP_EOL;
@@ -44,23 +76,6 @@ class Game
 
             if ($this->endOrNot($player1, $player2)) break;
         }
-
-        echo '戦争を終了します。' . PHP_EOL;
-    }
-
-    private function initSet()
-    {
-        echo '戦争を開始します。' . PHP_EOL;
-        while (true) {
-            echo 'プレイヤーの人数を入力してください（2~5(今は2人のみ)）：';
-            $numOfPlayer = (int)trim(fgets(STDIN));
-            if ($numOfPlayer >= 2 && $numOfPlayer <= 5) {
-                break;
-            } else {
-                echo '人数は2~5人で入力してください。' . PHP_EOL;
-            }
-        }
-        return $numOfPlayer;
     }
 
     private function decideWinner(Player $player1, Player $player2, array $fieldCards)
@@ -86,9 +101,9 @@ class Game
     private function endOrNot(Player $player1, Player $player2)
     {
         if (count($player1->playerCards) === 0 && count($player2->playerCards) === 0) {
-            $player1->playerCards = $this->addSpareToPlayerCards($player1);
+            $player1->playerCards = $player1->addSpareToPlayerCards();
             $player1->playerSpareCards = [];
-            $player2->playerCards = $this->addSpareToPlayerCards($player2);
+            $player2->playerCards = $player2->addSpareToPlayerCards();
             $player2->playerSpareCards = [];
             echo '両者のカードを補充します。' . PHP_EOL;
             if (count($player1->playerCards) === 0 && count($player2->playerCards) === 0) {
@@ -103,7 +118,7 @@ class Game
                 return true;
             }
         } elseif (count($player1->playerCards) === 0 && count($player2->playerCards) > 0) {
-            $player1->playerCards = $this->addSpareToPlayerCards($player1);
+            $player1->playerCards = $player1->addSpareToPlayerCards();
             $player1->playerSpareCards = [];
             echo 'プレイヤー1の手札を補充します。' . PHP_EOL;
             if (count($player1->playerCards) === 0) {
@@ -111,7 +126,7 @@ class Game
                 return true;
             }
         } elseif (count($player1->playerCards) > 0 && count($player2->playerCards) === 0) {
-            $player2->playerCards = $this->addSpareToPlayerCards($player2);
+            $player2->playerCards = $player2->addSpareToPlayerCards();
             $player2->playerSpareCards = [];
             echo 'プレイヤー2の手札を補充します。' . PHP_EOL;
             if (count($player2->playerCards) === 0) {
@@ -119,13 +134,6 @@ class Game
                 return true;
             }
         }
-    }
-
-    private function addSpareToPlayerCards(Player $player)
-    {
-        shuffle($player->playerSpareCards);
-        $player->playerCards = array_merge($player->playerCards, $player->playerSpareCards);
-        return $player->playerCards;
     }
 
     private function echoResult(Player $player)
