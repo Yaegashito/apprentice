@@ -18,7 +18,7 @@ class Game
             ${"player" . $i} = new Player();
         }
 
-        // [修正点(step3)] chunkではなくsliceのほうが人数変更に対応しやすいのでは
+        // ↓ カードを各プレイヤーに分配。人数変更に対応できたほうがよさそうだがちょっと難しそう
         [$player1->playerCards, $player2->playerCards] = array_chunk($shuffledCards, count($shuffledCards) / 2);
         echo 'カードが配られました。' . PHP_EOL;
 
@@ -34,7 +34,7 @@ class Game
             // ↓ 各ターンの勝者を判定、勝者の予備手札を増やす
             [$player1->playerSpareCards, $player2->playerSpareCards, $fieldCards] = $this->decideWinner($player1, $player2, $fieldCards);
 
-            // ↓ 両者の場に出した手札を減らす。
+            // ↓ 両者の場に出した手札を減らす
             array_shift($player1->playerCards);
             array_shift($player2->playerCards);
 
@@ -65,8 +65,8 @@ class Game
 
     private function decideWinner(Player $player1, Player $player2, array $fieldCards)
     {
-        if ($player1->playerCards[0]['rank'] === $player2->playerCards[0]['rank']) { // 条件はもとに戻しておけ
-            // if (abs($player1->playerCards[0]['rank'] - $player2->playerCards[0]['rank']) < 13) { //引き分けのテスト
+        if ($player1->playerCards[0]['rank'] === $player2->playerCards[0]['rank']) {
+            // if (abs($player1->playerCards[0]['rank'] - $player2->playerCards[0]['rank']) < 13) { //引き分けのテスト、削除しておけ
             echo '引き分けです。' . PHP_EOL;
         } else {
             if ($player1->playerCards[0]['rank'] > $player2->playerCards[0]['rank']) {
@@ -86,11 +86,9 @@ class Game
     private function endOrNot(Player $player1, Player $player2)
     {
         if (count($player1->playerCards) === 0 && count($player2->playerCards) === 0) {
-            shuffle($player1->playerSpareCards);
-            $player1->playerCards = array_merge($player1->playerCards, $player1->playerSpareCards);
+            $player1->playerCards = $this->addSpareToPlayerCards($player1);
             $player1->playerSpareCards = [];
-            shuffle($player2->playerSpareCards);
-            $player2->playerCards = array_merge($player2->playerCards, $player2->playerSpareCards);
+            $player2->playerCards = $this->addSpareToPlayerCards($player2);
             $player2->playerSpareCards = [];
             echo '両者のカードを補充します。' . PHP_EOL;
             if (count($player1->playerCards) === 0 && count($player2->playerCards) === 0) {
@@ -98,39 +96,43 @@ class Game
                 echo 'ゲームを続行できません。引き分けです。' . PHP_EOL;
                 return true;
             } elseif (count($player1->playerCards) === 0 && count($player2->playerCards) > 0) {
-                echo 'プレイヤー1の手札を補充できませんでした。' . PHP_EOL;
-                echo 'プレイヤー1の手札の枚数は0枚です。プレイヤー2の手札の枚数は' . count($player2->playerCards) . '枚です。' . PHP_EOL;
-                echo 'プレイヤー2が1位、プレイヤー1が2位です。' . PHP_EOL;
+                $this->echoResult($player2);
                 return true;
             } elseif (count($player1->playerCards) > 0 && count($player2->playerCards) === 0) {
-                echo 'プレイヤー2の手札を補充できませんでした。' . PHP_EOL;
-                echo 'プレイヤー1の手札の枚数は' . count($player1->playerCards) . '枚です。プレイヤー2の手札の枚数は0枚です。' . PHP_EOL;
-                echo 'プレイヤー1が1位、プレイヤー2が2位です。' . PHP_EOL;
+                $this->echoResult($player1);
                 return true;
             }
         } elseif (count($player1->playerCards) === 0 && count($player2->playerCards) > 0) {
-            shuffle($player1->playerSpareCards);
-            $player1->playerCards = array_merge($player1->playerCards, $player1->playerSpareCards);
+            $player1->playerCards = $this->addSpareToPlayerCards($player1);
             $player1->playerSpareCards = [];
             echo 'プレイヤー1の手札を補充します。' . PHP_EOL;
             if (count($player1->playerCards) === 0) {
-                echo 'プレイヤー1の手札を補充できませんでした。' . PHP_EOL;
-                echo 'プレイヤー1の手札の枚数は0枚です。プレイヤー2の手札の枚数は' . count($player2->playerCards) . '枚です。' . PHP_EOL;
-                echo 'プレイヤー2が1位、プレイヤー1が2位です。' . PHP_EOL;
+                $this->echoResult($player2);
                 return true;
             }
         } elseif (count($player1->playerCards) > 0 && count($player2->playerCards) === 0) {
-            shuffle($player2->playerSpareCards);
-            $player2->playerCards = array_merge($player2->playerCards, $player2->playerSpareCards);
+            $player2->playerCards = $this->addSpareToPlayerCards($player2);
             $player2->playerSpareCards = [];
             echo 'プレイヤー2の手札を補充します。' . PHP_EOL;
             if (count($player2->playerCards) === 0) {
-                echo 'プレイヤー2の手札を補充できませんでした。' . PHP_EOL;
-                echo 'プレイヤー1の手札の枚数は' . count($player1->playerCards) . '枚です。プレイヤー2の手札の枚数は0枚です。' . PHP_EOL;
-                echo 'プレイヤー1が1位、プレイヤー2が2位です。' . PHP_EOL;
+                $this->echoResult($player1);
                 return true;
             }
         }
+    }
+
+    private function addSpareToPlayerCards(Player $player)
+    {
+        shuffle($player->playerSpareCards);
+        $player->playerCards = array_merge($player->playerCards, $player->playerSpareCards);
+        return $player->playerCards;
+    }
+
+    private function echoResult(Player $player)
+    {
+        echo 'プレイヤー2の手札を補充できませんでした。' . PHP_EOL;
+        echo 'プレイヤー1の手札の枚数は' . count($player->playerCards) . '枚です。プレイヤー2の手札の枚数は0枚です。' . PHP_EOL;
+        echo 'プレイヤー1が1位、プレイヤー2が2位です。' . PHP_EOL;
     }
 }
 
