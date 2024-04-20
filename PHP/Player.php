@@ -2,7 +2,7 @@
 
 class Player
 {
-    // public $name;
+    public $name;
     public $playerCards;
     public $playerSpareCards = [];
     // public $numberOfPlayers;
