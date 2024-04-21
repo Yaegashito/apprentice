@@ -1,5 +1,7 @@
 <?php
 
+namespace WarGame;
+
 class Card
 {
     public function createInitCards()
@@ -30,6 +32,13 @@ class Card
                     'suit' => $suit
                 ];
             }
+        }
+        for ($i = 0; $i < 2; $i++) {
+            $cards[] = [
+                'numMark' => 'JOKER',
+                'rank' => '14',
+                'suit' => '最強'
+            ];
         }
         shuffle($cards);
         return $cards;

@@ -2,49 +2,49 @@
 
 namespace WarGame;
 
-class TwoPlayerRule
+class ThreePlayerRule
 {
-    public function applyTwoRule(Player $player1, Player $player2, array $shuffledCards)
+    public function applyThreeRule(Player $player1, Player $player2, Player $player3, array $shuffledCards)
     {
-        // ↓ カードを各プレイヤーに分配。人数変更に対応できたほうがよさそうだがちょっと難しそう
-        [$player1->playerCards, $player2->playerCards] = array_chunk($shuffledCards, count($shuffledCards) / 2);
+        [$player1->playerCards, $player2->playerCards, $player3->playerCards] = array_chunk($shuffledCards, count($shuffledCards) / 3);
         echo 'カードが配られました。' . PHP_EOL;
 
         $fieldCards = [];
         for ($i = 0;; $i++) {
             echo PHP_EOL . $i + 1 . '回目の戦争！' . PHP_EOL;
-            echo $player1->name . 'のカードは' . $player1->playerCards[0]['suit'];
-            echo 'の' . $player1->playerCards[0]['numMark'] . 'です。' . PHP_EOL;
-            echo $player2->name . 'のカードは' . $player2->playerCards[0]['suit'];
-            echo 'の' . $player2->playerCards[0]['numMark'] . 'です。' . PHP_EOL;
-            // ↓場札に追加。ここで各プレイヤーの手札は減らさない。ここで手札を減らすと次の勝者判定に差し支える。
+            echo $player1->name . 'のカードは' . $player1->playerCards[0]['suit'] . 'の' . $player1->playerCards[0]['numMark'] . 'です。' . PHP_EOL;
+            echo $player2->name . 'のカードは' . $player2->playerCards[0]['suit'] . 'の' . $player2->playerCards[0]['numMark'] . 'です。' . PHP_EOL;
+            echo $player3->name . 'のカードは' . $player3->playerCards[0]['suit'] . 'の' . $player3->playerCards[0]['numMark'] . 'です。' . PHP_EOL;
+            // ↓場札に追加。ここで各プレイヤーの手札は減らさない。ここで手札を減らすと次の条件判定に差し支える。
             $fieldCards[] = $player1->playerCards[0];
             $fieldCards[] = $player2->playerCards[0];
+            $fieldCards[] = $player3->playerCards[0];
+            // ここまで3人仕様に変更した
 
-            // ↓ 各ターンの勝者を判定、勝者の予備手札を増やす。なお、このコードは配列を変数に格納すれば短くできるが、代わりに行が増えるので見やすくはならないためこのままにした。
-            [$player1->playerSpareCards, $player2->playerSpareCards, $fieldCards] = $this->decideWinner($player1, $player2, $fieldCards);
+            // ↓ 各ターンの勝者を判定、勝者の予備手札を増やす
+            [$player1->playerSpareCards, $player2->playerSpareCards, $player3->playerSpareCards, $fieldCards] = $this->decideWinner($player1, $player2, $player3, $fieldCards);
 
             // ↓ 両者の場に出した手札を減らす
             array_shift($player1->playerCards);
             array_shift($player2->playerCards);
+            array_shift($player3->playerCards);
 
             // ↓各カード束の枚数を確認するテスト、ちゃんと削除しておけ
             $sum = count($fieldCards) + count($player1->playerSpareCards) + count($player1->playerCards) + count($player2->playerSpareCards) + count($player2->playerCards);
             echo PHP_EOL . '場札→' . count($fieldCards) . '    P1の手札→' . count($player1->playerCards) . '    P1の予備手札→' . count($player1->playerSpareCards) . '    P2の手札→' . count($player2->playerCards) . '    P2の予備手札→' . count($player2->playerSpareCards) . '   合計→' . $sum . PHP_EOL . PHP_EOL;
 
-            // ↓ 各プレイヤーの手札と予備手札を確認し、ゲーム終了か続行かを判定する
             if ($this->endOrNot($player1, $player2)) {
                 break;
             }
         }
     }
 
-    private function decideWinner(Player $player1, Player $player2, array $fieldCards)
+    private function decideWinner(Player $player1, Player $player2, Player $player3, array $fieldCards)
     {
-        if ($player1->playerCards[0]['rank'] === $player2->playerCards[0]['rank']) {
-            // if (abs($player1->playerCards[0]['rank'] - $player2->playerCards[0]['rank']) < 13) { //引き分けのテスト、削除しておけ
+        if (count(array_unique([$player1->playerCards[0]['rank'], $player2->playerCards[0]['rank'], $player3->playerCards[0]['rank']])) === 1) {
             echo '引き分けです。' . PHP_EOL;
         } else {
+            // ここからの3人仕様がわからない
             if ($player1->playerCards[0]['rank'] > $player2->playerCards[0]['rank']) {
                 // ↓プレイヤー1の予備手札を増やす
                 $player1->playerSpareCards = array_merge($player1->playerSpareCards, $fieldCards);
@@ -56,10 +56,10 @@ class TwoPlayerRule
             }
             $fieldCards = [];
         }
-        return [$player1->playerSpareCards, $player2->playerSpareCards, $fieldCards];
+        return [$player1->playerSpareCards, $player2->playerSpareCards, $player3->playerSpareCards, $fieldCards];
     }
 
-    private function endOrNot(Player $player1, Player $player2): bool
+    private function endOrNot(Player $player1, Player $player2, Player $player3)
     {
         if (count($player1->playerCards) === 0 && count($player2->playerCards) === 0) {
             $player1->playerCards = $player1->addSpareToPlayerCards();
@@ -78,7 +78,6 @@ class TwoPlayerRule
                 $this->echoResultP1Win($player1, $player2);
                 return true;
             }
-            return false;
         } elseif (count($player1->playerCards) === 0 && count($player2->playerCards) > 0) {
             $player1->playerCards = $player1->addSpareToPlayerCards();
             $player1->playerSpareCards = [];
@@ -87,7 +86,6 @@ class TwoPlayerRule
                 $this->echoResultP2Win($player1, $player2);
                 return true;
             }
-            return false;
         } elseif (count($player1->playerCards) > 0 && count($player2->playerCards) === 0) {
             $player2->playerCards = $player2->addSpareToPlayerCards();
             $player2->playerSpareCards = [];
@@ -96,10 +94,7 @@ class TwoPlayerRule
                 $this->echoResultP1Win($player1, $player2);
                 return true;
             }
-            return false;
         }
-        return false;
-        // ↑ 「よくわからないがうまくいっていること」。この関数内で処理した結果をfor文の2周目以降で使うにはreturnをしなければならないはずだが、returnをしていないにも関わらず$player->playerSpareCardsの値が反映されている。そもそも真偽値を返す関数内で代入等の処理をするのが間違っている気もするが、なぜか思い通りになっている。
     }
 
     private function echoResultP1Win(Player $player1, Player $player2)
@@ -114,8 +109,7 @@ class TwoPlayerRule
     {
         echo $player1->name . 'の手札を補充できませんでした。' . PHP_EOL;
         echo $player1->name . 'の手札の枚数は0枚です。';
-        echo $player2->name . 'の手札の枚数は';
-        echo count($player2->playerCards) + count($player2->playerSpareCards) . '枚です。' . PHP_EOL;
+        echo $player2->name . 'の手札の枚数は' . count($player2->playerCards) + count($player2->playerSpareCards) . '枚です。' . PHP_EOL;
         echo $player2->name . 'が1位、' . $player1->name . 'が2位です。' . PHP_EOL;
     }
 }

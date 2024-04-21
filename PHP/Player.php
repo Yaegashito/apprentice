@@ -1,15 +1,12 @@
 <?php
 
+namespace WarGame;
+
 class Player
 {
     public $name;
     public $playerCards;
     public $playerSpareCards = [];
-
-    // public function __construct($name)
-    // {
-    //     $this->name = $name;
-    // }
 
     public function addSpareToPlayerCards()
     {
