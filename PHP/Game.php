@@ -43,7 +43,7 @@ class WarGame
     private function selectMode()
     {
         while (true) {
-            echo 'プレイヤーの人数を入力してください（2~5(今は2人のみ実装)）：';
+            echo 'プレイヤーの人数を入力してください（2~3(今は2人のみ実装)）：';
             $numOfPlayer = (int)trim(fgets(STDIN));
             if ($numOfPlayer >= 2 && $numOfPlayer <= 3) {
                 break;

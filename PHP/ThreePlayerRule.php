@@ -29,11 +29,7 @@ class ThreePlayerRule
             array_shift($player2->playerCards);
             array_shift($player3->playerCards);
 
-            // ↓各カード束の枚数を確認するテスト、ちゃんと削除しておけ
-            $sum = count($fieldCards) + count($player1->playerSpareCards) + count($player1->playerCards) + count($player2->playerSpareCards) + count($player2->playerCards);
-            echo PHP_EOL . '場札→' . count($fieldCards) . '    P1の手札→' . count($player1->playerCards) . '    P1の予備手札→' . count($player1->playerSpareCards) . '    P2の手札→' . count($player2->playerCards) . '    P2の予備手札→' . count($player2->playerSpareCards) . '   合計→' . $sum . PHP_EOL . PHP_EOL;
-
-            if ($this->endOrNot($player1, $player2)) {
+            if ($this->endOrNot($player1, $player2, $player3)) {
                 break;
             }
         }

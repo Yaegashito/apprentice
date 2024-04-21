@@ -21,16 +21,12 @@ class TwoPlayerRule
             $fieldCards[] = $player1->playerCards[0];
             $fieldCards[] = $player2->playerCards[0];
 
-            // ↓ 各ターンの勝者を判定、勝者の予備手札を増やす。なお、このコードは配列を変数に格納すれば短くできるが、代わりに行が増えるので見やすくはならないためこのままにした。
+            // ↓ 各ターンの勝者を判定、勝者の予備手札を増やす。なお、このコードは配列を変数に格納すれば短くできるが、代わりに行が増えて見やすさは変わらないためこのままにした。
             [$player1->playerSpareCards, $player2->playerSpareCards, $fieldCards] = $this->decideWinner($player1, $player2, $fieldCards);
 
             // ↓ 両者の場に出した手札を減らす
             array_shift($player1->playerCards);
             array_shift($player2->playerCards);
-
-            // ↓各カード束の枚数を確認するテスト、ちゃんと削除しておけ
-            $sum = count($fieldCards) + count($player1->playerSpareCards) + count($player1->playerCards) + count($player2->playerSpareCards) + count($player2->playerCards);
-            echo PHP_EOL . '場札→' . count($fieldCards) . '    P1の手札→' . count($player1->playerCards) . '    P1の予備手札→' . count($player1->playerSpareCards) . '    P2の手札→' . count($player2->playerCards) . '    P2の予備手札→' . count($player2->playerSpareCards) . '   合計→' . $sum . PHP_EOL . PHP_EOL;
 
             // ↓ 各プレイヤーの手札と予備手札を確認し、ゲーム終了か続行かを判定する
             if ($this->endOrNot($player1, $player2)) {
@@ -42,7 +38,6 @@ class TwoPlayerRule
     private function decideWinner(Player $player1, Player $player2, array $fieldCards)
     {
         if ($player1->playerCards[0]['rank'] === $player2->playerCards[0]['rank']) {
-            // if (abs($player1->playerCards[0]['rank'] - $player2->playerCards[0]['rank']) < 13) { //引き分けのテスト、削除しておけ
             echo '引き分けです。' . PHP_EOL;
         } else {
             if ($player1->playerCards[0]['rank'] > $player2->playerCards[0]['rank']) {
